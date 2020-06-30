@@ -3,15 +3,12 @@ const Promise = require("bluebird");
 const isStream = require("is-stream");
 const { Client } = require("@elastic/elasticsearch");
 
-var elastic;
-
 /**
  * data is json array of objects or stream
  */
 module.exports.import = function (data, options, schema) {
   options = options || {};
   options.concurrency = options.concurrency || 1;
-  options.type = options.type || options.index;
 
   if (!options.host) {
     return Promise.reject("Please define host name");
@@ -25,39 +22,20 @@ module.exports.import = function (data, options, schema) {
     data.pause();
   }
 
-  return (
-    Promise.resolve()
-      // .then(function(res) {
-
-      //   if (schema) {
-
-      //     return elastic.indices.create({
-      //       index: options.index,
-      //       body: {
-      //         mappings: {
-      //           [options.type]: {
-      //             properties: schema
-      //           }
-      //         }
-      //       }
-      //     })
-      //   }
-      // })
-      .then(function (res) {
-        if (isStream(data)) {
-          return module.exports.addItemsStream(data, options);
-        } else {
-          return Promise.all(_.chunk(data)).map(
-            (v) => {
-              return module.exports.addBulkItems(v, options);
-            },
-            {
-              concurrency: options.concurrency,
-            }
-          );
+  return Promise.resolve().then(function (res) {
+    if (isStream(data)) {
+      return module.exports.addItemsStream(data, options);
+    } else {
+      return Promise.all(_.chunk(data)).map(
+        (v) => {
+          return module.exports.addBulkItems(v, options);
+        },
+        {
+          concurrency: options.concurrency,
         }
-      })
-  );
+      );
+    }
+  });
 };
 
 /**
@@ -136,7 +114,6 @@ module.exports.addBulkItems = function (items, options, schema) {
   return elastic
     .bulk({
       index: options.index,
-      type: options.type,
       body: body,
     })
     .then((v) => {
