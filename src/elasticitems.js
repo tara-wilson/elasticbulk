@@ -93,9 +93,10 @@ module.exports.addItemsStream = function (stream, options) {
 };
 
 module.exports.addBulkItems = function (items, options, schema) {
+  console.log("add bulk items...", items.length);
   var body = [];
   for (var i = 0; i < items.length; ++i) {
-    var o = { index: { _id: items[i] ? items[i]._id : undefined } };
+    var o = { index: { _id: items[i] ? items[i].external_id : undefined } };
     body.push(o);
     body.push(items[i]);
   }
