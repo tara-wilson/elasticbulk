@@ -26,7 +26,7 @@ module.exports.import = function (data, options, schema) {
     if (isStream(data)) {
       return module.exports.addItemsStream(data, options);
     } else {
-      return Promise.all(_.chunk(data, 100)).map(
+      return Promise.all(_.chunk(data, 500)).map(
         (v) => {
           return module.exports.addBulkItems(v, options);
         },
@@ -93,7 +93,6 @@ module.exports.addItemsStream = function (stream, options) {
 };
 
 module.exports.addBulkItems = function (items, options, schema) {
-  console.log("add bulk items", items.length);
   var body = [];
   for (var i = 0; i < items.length; ++i) {
     var o = { index: { _id: items[i] ? items[i].external_id : undefined } };
